@@ -1,15 +1,16 @@
-import { jsdom } from 'jsdom'
+import jsdom from 'jsdom'
 import Alt from 'alt'
 import React from 'react'
 import ReactDom from 'react-dom'
 import ReactDomServer from 'react-dom/server'
-import connectToStores from '../'
+import Connect from '../connect'
 import { assert } from 'chai'
 import sinon from 'sinon'
-import TestUtils from 'react-addons-test-utils'
+import TestUtils from 'react-dom/test-utils'
 
 const alt = new Alt()
-
+const connect = { Connect }
+const { JSDOM } = jsdom;
 const testActions = alt.generateActions('updateFoo')
 
 const testStore = alt.createStore(
@@ -25,15 +26,17 @@ const testStore = alt.createStore(
 )
 
 export default {
-  'connectToStores wrapper': {
+  'connect wrapper': {
     beforeEach() {
-      global.document = jsdom('<!doctype html><html><body></body></html>')
+      console.log('beforeEach');
+      global.document = new JSDOM('<!doctype html><html><body></body></html>')
       global.window = global.document.defaultView
 
       alt.recycle()
     },
 
     afterEach() {
+      console.log('afterEach');
       delete global.document
       delete global.window
     },
@@ -45,7 +48,7 @@ export default {
 
       const getProps = sinon.stub().returns(FooStore.getState())
 
-      const Child = connectToStores(React.createClass({
+      const Child = connect(React.createClass({
         render() {
           return <span>{this.props.x + this.props.y}</span>
         }
@@ -82,7 +85,7 @@ export default {
     'element mounts and unmounts'() {
       const div = document.createElement('div')
 
-      const LegacyComponent = connectToStores(React.createClass({
+      const LegacyComponent = connect(React.createClass({
         render() {
           return React.createElement('div', null, `Foo${this.props.delim}${this.props.foo}`)
         }
@@ -109,7 +112,7 @@ export default {
         }
       })
 
-      const WrappedComponent = connectToStores(LegacyComponent, {
+      const WrappedComponent = connect(LegacyComponent, {
         listenTo() {
           return [testStore]
         },
@@ -123,7 +126,7 @@ export default {
     },
 
     'component statics can see context properties'() {
-      const Child = connectToStores(React.createClass({
+      const Child = connect(React.createClass({
         contextTypes: {
           store: React.PropTypes.object
         },
@@ -162,7 +165,7 @@ export default {
         }
       })
 
-      const WrappedComponent = connectToStores(LegacyComponent, {
+      const WrappedComponent = connect(LegacyComponent, {
         listenTo(props) {
           return [props.store]
         },
@@ -182,7 +185,7 @@ export default {
         }
       }
 
-      const WrappedComponent = connectToStores(ClassComponent1, {
+      const WrappedComponent = connect(ClassComponent1, {
         listenTo() {
           return [testStore]
         },
@@ -209,7 +212,7 @@ export default {
           return <span foo={this.props.foo} />
         }
       }
-      const WrappedComponent = connectToStores(ClassComponent2, {
+      const WrappedComponent = connect(ClassComponent2, {
         listenTo() {
           return [testStore]
         },
@@ -239,7 +242,7 @@ export default {
         }
       }
 
-      const WrappedComponent = connectToStores(ClassComponent3, {
+      const WrappedComponent = connect(ClassComponent3, {
         listenTo() {
           return [testStore]
         },
